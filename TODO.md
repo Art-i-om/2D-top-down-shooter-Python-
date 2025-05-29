@@ -16,7 +16,7 @@
 - [ ] Weapon Upgrades
 - [ ] Levels or Waves
 - [ ] Audio Cues
-- [ ] Menus (Main, Pause, Game Over)
+- [x] Menus (Main, Pause, Game Over)
 - [ ] Particles (explosions, effects)
 - [ ] Minimap
 
