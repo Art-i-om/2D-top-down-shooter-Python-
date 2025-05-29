@@ -1,0 +1,37 @@
+# Game Development Tasks Checklist
+
+## 🟩 Easy Tasks
+- [x] Enemy Movement
+- [x] Player Health
+- [ ] Power-ups
+- [ ] Sound Effects
+- [ ] Background Music
+- [ ] Scoring and High Scores
+- [ ] Screen Shake
+- [ ] Simple Achievements
+
+## 🟧 Medium Tasks
+- [ ] Different Enemy Types
+- [ ] Obstacles
+- [ ] Weapon Upgrades
+- [ ] Levels or Waves
+- [ ] Audio Cues
+- [ ] Menus (Main, Pause, Game Over)
+- [ ] Particles (explosions, effects)
+- [ ] Minimap
+
+## 🟥 Hard Tasks
+- [ ] Enemy AI (smart movement, cover)
+- [ ] Lighting Effects
+- [ ] Save/Load System
+- [ ] Boss Fights
+- [ ] Customizable Controls
+- [ ] Multiplayer
+- [ ] Animations (sprites, transitions)
+
+## 🟦 Epic Tasks
+- [ ] Online Multiplayer
+- [ ] Dynamic Achievements system
+- [ ] Full Game Loop Polish
+
+---

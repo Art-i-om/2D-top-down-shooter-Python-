@@ -3,12 +3,18 @@ import pygame
 
 class Player:
     def __init__(self, x: int, y: int, size: int, player_speed: float,
-                 screen_width: int, screen_height: int, color: tuple[int, int, int]):
+                 screen_width: int, screen_height: int, color: tuple[int, int, int],
+                 health: int, damage: int, damage_cooldown: float):
         self.rect = pygame.Rect(x, y, size, size)
         self.speed = player_speed
         self.width = screen_width
         self.height = screen_height
         self.color = color
+        self.health = health
+        self.max_health = health
+        self.damage = damage
+        self.last_hit_time = 0
+        self.damage_cooldown = damage_cooldown
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -30,6 +36,19 @@ class Player:
 
         self.rect.x = max(0, min(self.width - self.rect.width, self.rect.x))
         self.rect.y = max(0, min(self.height - self.rect.height, self.rect.y))
+
+    def is_dead(self, damage: int) -> bool:
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_hit_time > self.damage_cooldown:
+            self.health -= damage
+            self.last_hit_time = current_time
+        if self.health <= 0:
+            return True
+
+        return False
+
+    def heal(self, health):
+        self.health = min(self.health + health, self.max_health)
 
     def draw(self, surface):
         pygame.draw.rect(surface, self.color, self.rect)
