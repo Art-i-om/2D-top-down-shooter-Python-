@@ -3,11 +3,11 @@
 ## 🟩 Easy Tasks
 - [x] Enemy Movement
 - [x] Player Health
-- [ ] Power-ups
-- [ ] Sound Effects
-- [ ] Background Music
-- [ ] Scoring and High Scores
-- [ ] Screen Shake
+- [x] Power-ups
+- [x] Sound Effects
+- [x] Background Music
+- [x] Scoring and High Scores
+- [x] Screen Shake
 - [ ] Simple Achievements
 
 ## 🟧 Medium Tasks

@@ -13,5 +13,6 @@ class Bullet:
         self.rect.x += self.direction.x * self.bullet_speed
         self.rect.y += self.direction.y * self.bullet_speed
 
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.color, self.rect)
+    def draw(self, surface, offset=(0, 0)):
+        draw_rect = self.rect.move(offset)
+        pygame.draw.rect(surface, self.color, draw_rect)

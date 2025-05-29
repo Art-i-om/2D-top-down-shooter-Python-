@@ -14,5 +14,6 @@ class Collectable:
             size, size
         )
 
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.color, self.rect)
+    def draw(self, surface, offset=(0, 0)):
+        draw_rect = self.rect.move(offset)
+        pygame.draw.rect(surface, self.color, draw_rect)

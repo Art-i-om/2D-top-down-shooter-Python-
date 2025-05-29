@@ -5,6 +5,8 @@ class Screen:
     width: int = 1920
     height: int = 1080
     fps: int = 60
+    shake_duration: int = 10 # given in frames
+    shake_magnitude: int = 5
 
 @dataclass(frozen=True)
 class Player:
@@ -26,6 +28,11 @@ class Collectable:
 @dataclass(frozen=True)
 class HealthPack(Collectable):
     health: int = 1
+
+@dataclass(frozen=True)
+class SpeedBoost(Collectable):
+    new_speed: int = 10
+    duration: float = 3000
 
 @dataclass(frozen=True)
 class CatchingEnemy(Enemy):
