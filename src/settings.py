@@ -4,6 +4,8 @@ from dataclasses import dataclass
 class Screen:
     width: int = 1920
     height: int = 1080
+    world_width: int = 3000
+    world_height: int = 3000
     fps: int = 60
     shake_duration: int = 10 # given in frames
     shake_magnitude: int = 5
@@ -41,7 +43,8 @@ class CatchingEnemy(Enemy):
 
 @dataclass(frozen=True)
 class Bullet:
-    speed: int = 10
+    speed: int = 20
+    size: int = 10
 
 @dataclass(frozen=True)
 class Colors:
@@ -53,3 +56,7 @@ class Colors:
     red: tuple[int, int, int] = (255, 0, 0)
     purple: tuple[int, int, int] = (255, 0, 255)
     cyan: tuple[int, int, int] = (0, 255, 255)
+
+@dataclass(frozen=True)
+class Sounds:
+    global_volume: float = 0.5

@@ -1,16 +1,18 @@
 import pygame
+from src.entities.entity import Entity
 
 
-class Player:
+class Player(Entity):
     def __init__(self, x: int, y: int, size: int, player_speed: float,
-                 screen_width: int, screen_height: int, color: tuple[int, int, int],
+                 screen_width: int, screen_height: int, world_width: int, world_height: int, color: tuple[int, int, int],
                  health: int, damage: int, damage_cooldown: float):
-        self.rect = pygame.Rect(x, y, size, size)
+        super().__init__(x, y, size, size, color)
         self.speed = player_speed
         self.default_speed = player_speed
         self.width = screen_width
         self.height = screen_height
-        self.color = color
+        self.world_width = world_width
+        self.world_height = world_height
         self.health = health
         self.max_health = health
         self.damage = damage
@@ -36,8 +38,8 @@ class Player:
         self.rect.x += movement.x * self.speed
         self.rect.y += movement.y * self.speed
 
-        self.rect.x = max(0, min(self.width - self.rect.width, self.rect.x))
-        self.rect.y = max(0, min(self.height - self.rect.height, self.rect.y))
+        self.rect.x = max(0, min(self.world_width - self.rect.width, self.rect.x))
+        self.rect.y = max(0, min(self.world_height - self.rect.height, self.rect.y))
 
     def take_damage(self, damage: int) -> bool:
         current_time = pygame.time.get_ticks()
@@ -57,7 +59,3 @@ class Player:
         current_time = pygame.time.get_ticks()
         if current_time > self.boost_end_time:
             self.speed = self.default_speed
-
-    def draw(self, surface, offset=(0, 0)):
-        draw_rect = self.rect.move(offset)
-        pygame.draw.rect(surface, self.color, draw_rect)

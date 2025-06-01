@@ -3,20 +3,23 @@ from typing import List, Union
 
 import pygame
 import sys
-from entities import Player, CatchingEnemy, Enemy, Bullet, HealthPack, SpeedBoost, Collectable
-from screen_shake import ScreenShake
+from entities import Player, CatchingEnemy, Enemy, Bullet, HealthPack, SpeedBoost
+from core import Camera
 import settings
-from sound_manager import SoundManager
-from menu_manager import MenuManager
+from managers import SoundManager
+from managers import MenuManager
 
 pygame.init()
 
 # Sounds
 sound_manager = SoundManager()
-sound_manager.set_volume(0.5)
+sound_manager.set_volume(settings.Sounds.global_volume)
+
+# Map
+WORLD_WIDTH, WORLD_HEIGHT = settings.Screen.world_width, settings.Screen.world_height
 
 # Screen
-WIDTH, HEIGHT = settings.Screen.width, settings.Screen.height
+SCREEN_WIDTH, SCREEN_HEIGHT = settings.Screen.width, settings.Screen.height
 FPS = settings.Screen.fps
 SHAKE_DURATION = settings.Screen.shake_duration # given in frames
 SHAKE_MAGNITUDE = settings.Screen.shake_magnitude
@@ -36,6 +39,7 @@ CATCHING_ENEMY_DAMAGE = settings.CatchingEnemy.damage
 
 # Bullet
 BULLET_SPEED = settings.Bullet.speed
+BULLET_SIZE = settings.Bullet.size
 
 #Power ups
 POWER_UPS_SIZE = settings.Collectable.size
@@ -55,7 +59,7 @@ colors = {
     "cyan": settings.Colors.cyan
 }
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Top-Down Movement with Collectables")
 clock = pygame.time.Clock()
 
@@ -64,7 +68,8 @@ enemies_killed = 0
 
 font = pygame.font.SysFont(None, 36)
 
-menu_manager = MenuManager(screen, clock, WIDTH, HEIGHT, FPS, colors)
+camera = Camera(WORLD_WIDTH, WORLD_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT)
+menu_manager = MenuManager(screen, clock, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, colors)
 
 menu_manager.main_menu()
 
@@ -72,31 +77,30 @@ def play_game():
     global score
     global enemies_killed
 
-    player = Player(WIDTH // 2, HEIGHT // 2, PLAYER_SIZE,
-                    PLAYER_SPEED, WIDTH, HEIGHT, colors['green'], PLAYER_HEALTH,
+    player = Player(WORLD_WIDTH // 2, WORLD_HEIGHT // 2, PLAYER_SIZE,
+                    PLAYER_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, WORLD_WIDTH, WORLD_HEIGHT,
+                    colors['green'], PLAYER_HEALTH,
                     PLAYER_DAMAGE,
                     PLAYER_DAMAGE_COOLDOWN)
 
     health_packs: List[HealthPack] = [
-        HealthPack(POWER_UPS_SIZE, WIDTH, HEIGHT, colors['red'], HEALTH_PACK_HEALTH)
+        HealthPack(POWER_UPS_SIZE, WORLD_WIDTH, WORLD_HEIGHT, colors['red'], HEALTH_PACK_HEALTH)
         for _ in range(3)
     ]
 
     speed_boosts: List[SpeedBoost] = [
-        SpeedBoost(POWER_UPS_SIZE, WIDTH, HEIGHT, colors['blue'], EXTRA_SPEED_BOOST, EXTRA_SPEED_DURATION)
+        SpeedBoost(POWER_UPS_SIZE, WORLD_WIDTH, WORLD_HEIGHT, colors['blue'], EXTRA_SPEED_BOOST, EXTRA_SPEED_DURATION)
         for _ in range(2)
     ]
 
     bullets = []
     catching_enemies: List[Enemy] = [
-        CatchingEnemy(random.randint(0, WIDTH - ENEMY_SIZE),
-                      random.randint(0, HEIGHT - ENEMY_SIZE),
+        CatchingEnemy(random.randint(0, SCREEN_WIDTH - ENEMY_SIZE),
+                      random.randint(0, SCREEN_HEIGHT - ENEMY_SIZE),
                       ENEMY_SIZE, ENEMY_HEALTH, colors['purple'], colors['red'], CATCHING_ENEMY_SPEED - 1,
                       CATCHING_ENEMY_DAMAGE)
         for _ in range(2)
     ]
-
-    screen_shake = ScreenShake(SHAKE_MAGNITUDE, SHAKE_DURATION)
 
     running = True
     while running:
@@ -111,10 +115,12 @@ def play_game():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    direction = pygame.Vector2(mouse_x - player.rect.centerx, mouse_y - player.rect.centery)
+                    world_mouse_x = mouse_x + camera.camera_rect.left
+                    world_mouse_y = mouse_y + camera.camera_rect.top
+                    direction = pygame.Vector2(world_mouse_x - player.rect.centerx, world_mouse_y - player.rect.centery)
                     bullet_x = player.rect.centerx - 5
                     bullet_y = player.rect.centery - 5
-                    bullets.append(Bullet(bullet_x, bullet_y, direction, BULLET_SPEED, colors['yellow']))
+                    bullets.append(Bullet(bullet_x, bullet_y, BULLET_SIZE, direction, BULLET_SPEED, colors['yellow']))
                     sound_manager.play_shoot()
 
             if event.type == pygame.KEYDOWN:
@@ -122,12 +128,13 @@ def play_game():
                     menu_manager.pause_menu()
 
         player.handle_input()
+        camera.update(player)
 
         for bullet in bullets[:]:
             bullet.update()
             if (
-                    bullet.rect.x < 0 or bullet.rect.x > WIDTH or
-                    bullet.rect.y < 0 or bullet.rect.y > HEIGHT
+                    bullet.rect.x < 0 or bullet.rect.x > WORLD_WIDTH or
+                    bullet.rect.y < 0 or bullet.rect.y > WORLD_HEIGHT
             ):
                 bullets.remove(bullet)
 
@@ -161,21 +168,16 @@ def play_game():
         for enemy in catching_enemies:
             if player.rect.colliderect(enemy.rect):
                 if player.take_damage(enemy.damage):
-                    screen_shake.start()
+                    camera.start_shake(SHAKE_DURATION, SHAKE_MAGNITUDE)
                 if player.is_dead():
                     running = False
 
-        offset = (screen_shake.get_offset())
-
         screen.fill(colors['black'])
-        player.draw(screen, offset=offset)
+        player.draw(screen, camera=camera)
 
-        for collectable in all_collectables:
-            collectable.draw(screen, offset=offset)
-        for bullet in bullets:
-            bullet.draw(screen, offset=offset)
-        for enemy in catching_enemies:
-            enemy.draw(screen, offset=offset)
+        all_entities = all_collectables + bullets + all_enemies
+        for entity in all_entities:
+            entity.draw(screen, camera=camera)
 
         score_text = font.render(f"Score: {score}", True, colors['white'])
         enemies_killed_text = font.render(f"Enemies killed: {enemies_killed}", True, colors['white'])

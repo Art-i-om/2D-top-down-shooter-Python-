@@ -1,16 +1,16 @@
 import pygame
 
 from src.entities.player import Player
+from src.entities.entity import Entity
 
 
-class Enemy:
-    def __init__(self, x: int, y: int, size: float,
+class Enemy(Entity):
+    def __init__(self, x: int, y: int, size: int,
                  max_health: int, color: tuple[int, int, int], bar_color: tuple[int, int, int],
                  damage: int):
-        self.rect = pygame.Rect(x, y, size, size)
+        super().__init__(x, y, size, size, color)
         self.max_health = max_health
         self.health = max_health
-        self.color = color
         self.bar_color = bar_color
         self.damage = damage
 
@@ -24,15 +24,20 @@ class Enemy:
 
         return False
 
-    def draw(self, surface, offset=(0, 0)):
-        draw_rect = self.rect.move(offset)
-        pygame.draw.rect(surface, self.color, draw_rect)
-        health_ratio = self.health / self.max_health
-        health_bar_width = int(self.rect.width * health_ratio)
+    def draw(self, surface, camera=None):
+        super().draw(surface, camera)
+
+        if camera:
+            draw_rect = camera.apply(self.rect)
+        else:
+            draw_rect = self.rect
+
+        health_bar_width = int(draw_rect.width * (self.health / self.max_health))
+        health_bar_height = 5
         health_bar_rect = pygame.Rect(
-            self.rect.x + offset[0],
-            self.rect.y - 10 + offset[1],
+            draw_rect.x,
+            draw_rect.y - health_bar_height - 5,
             health_bar_width,
-            5
+            health_bar_height
         )
         pygame.draw.rect(surface, self.bar_color, health_bar_rect)

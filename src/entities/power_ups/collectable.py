@@ -1,19 +1,13 @@
 import pygame
 import random
+from src.entities import Entity
 
 
-class Collectable:
-    def __init__(self, size: int, screen_width: int, screen_height: int, color: tuple[int, int, int]):
-        self.size = size
-        self.width = screen_width
-        self.height = screen_height
-        self.color = color
-        self.rect = pygame.Rect(
-            random.randint(0, self.width - size),
-            random.randint(0, self.height - size),
-            size, size
-        )
-
-    def draw(self, surface, offset=(0, 0)):
-        draw_rect = self.rect.move(offset)
-        pygame.draw.rect(surface, self.color, draw_rect)
+class Collectable(Entity):
+    def __init__(self, size: int, world_width: int, world_height: int, color: tuple[int, int, int]):
+        width = world_width
+        height = world_height
+        color = color
+        x = random.randint(0, width - size)
+        y = random.randint(0, height - size)
+        super().__init__(x, y, size, size, color)
