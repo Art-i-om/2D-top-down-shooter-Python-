@@ -54,7 +54,7 @@ class MenuManager:
             pygame.display.flip()
             self.clock.tick(self.fps)
 
-    def game_over_menu(self, score):
+    def game_over_menu(self, score, waves_cleared):
         game_over_running = True
         while game_over_running:
             for event in pygame.event.get():
@@ -72,6 +72,9 @@ class MenuManager:
             font_small = pygame.font.SysFont(None, 36)
             prompt = font_small.render(f"Score: {score}", True, self.colors["white"])
             self.screen.blit(prompt, (self.width//2 - prompt.get_width()//2, self.height//2 - 20))
+
+            waves_cleared_text = font_small.render(f"Waves cleared: {waves_cleared}", True, self.colors['white'])
+            self.screen.blit(waves_cleared_text, (self.width//2 - waves_cleared_text.get_width()//2, self.height//2 + 10))
 
             prompt2 = font_small.render("Press any button to Restart", True, self.colors["white"])
             self.screen.blit(prompt2, (self.width//2 - prompt2.get_width()//2, self.height//2 + 40))

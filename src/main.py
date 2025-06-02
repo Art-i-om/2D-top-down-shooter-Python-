@@ -1,14 +1,12 @@
-import random
 from typing import List, Union
 
 import pygame
 import sys
-from entities import Player, CatchingEnemy, Enemy, Bullet, HealthPack, SpeedBoost
+from entities import Player, Bullet, HealthPack, SpeedBoost
 from core import Camera
 from ui import Label, Bar
 import settings
-from managers import SoundManager
-from managers import MenuManager
+from managers import SoundManager, MenuManager, WaveManager
 
 pygame.init()
 
@@ -68,6 +66,7 @@ pygame.display.set_caption("Top-Down Movement with Collectables")
 clock = pygame.time.Clock()
 
 score = 0
+waves_cleared = 0
 
 camera = Camera(WORLD_WIDTH, WORLD_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT)
 menu_manager = MenuManager(screen, clock, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, colors)
@@ -76,6 +75,7 @@ menu_manager.main_menu()
 
 def play_game():
     global score
+    global waves_cleared
 
     player = Player(WORLD_WIDTH // 2, WORLD_HEIGHT // 2, PLAYER_SIZE,
                     PLAYER_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, WORLD_WIDTH, WORLD_HEIGHT,
@@ -95,13 +95,14 @@ def play_game():
     ]
 
     bullets = []
-    catching_enemies: List[Enemy] = [
-        CatchingEnemy(random.randint(0, SCREEN_WIDTH - ENEMY_SIZE),
-                      random.randint(0, SCREEN_HEIGHT - ENEMY_SIZE),
-                      ENEMY_SIZE, ENEMY_HEALTH, colors['purple'], colors['red'], CATCHING_ENEMY_SPEED - 1,
-                      CATCHING_ENEMY_DAMAGE)
-        for _ in range(2)
-    ]
+
+    wave_manager = WaveManager(
+        SCREEN_WIDTH, SCREEN_HEIGHT,
+        ENEMY_SIZE, ENEMY_HEALTH,
+        CATCHING_ENEMY_SPEED, CATCHING_ENEMY_DAMAGE, colors
+    )
+
+    catching_enemies = wave_manager.spawn_wave()
 
     stamina_bar = Bar(10, SCREEN_HEIGHT - 70,
                              350, 40,
@@ -112,6 +113,8 @@ def play_game():
 
     score_label = Label(f"Score: {score}", 10, 10, 36, colors['white'])
     speed_label = Label(f"Speed: {player.speed}", 10, 40, 36, colors['white'])
+    wave_number_label = Label(f"Wave number: {wave_manager.wave_number}",
+                              SCREEN_WIDTH - 230, 10, 40, colors['white'])
 
     running = True
     while running:
@@ -184,6 +187,11 @@ def play_game():
                 if player.is_dead():
                     running = False
 
+        if not all_enemies:
+            catching_enemies = wave_manager.next_wave()
+            wave_number_label.update_text(f"Wave number: {wave_manager.wave_number}")
+            waves_cleared += 1
+
         screen.fill(colors['black'])
         player.draw(screen, camera=camera)
 
@@ -193,6 +201,7 @@ def play_game():
 
         score_label.draw(screen)
         speed_label.draw(screen)
+        wave_number_label.draw(screen)
 
         stamina_bar.draw(screen, player.stamina, player.max_stamina)
         health_bar.draw(screen, player.health, player.max_health)
@@ -202,4 +211,4 @@ def play_game():
 
 while True:
     play_game()
-    menu_manager.game_over_menu(score)
+    menu_manager.game_over_menu(score, waves_cleared)
