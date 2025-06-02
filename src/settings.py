@@ -17,6 +17,9 @@ class Player:
     damage: int = 1
     speed: int = 5
     damage_cooldown: float = 1000 # millis
+    max_stamina: int = 100
+    stamina_recovery_rate: float = 0.5
+    stamina_consumption_rate: float = 0.75
 
 @dataclass(frozen=True)
 class Enemy:
@@ -60,3 +63,8 @@ class Colors:
 @dataclass(frozen=True)
 class Sounds:
     global_volume: float = 0.5
+
+@dataclass(frozen=True)
+class StaminaBar:
+    width: int = 350
+    height: int = 40

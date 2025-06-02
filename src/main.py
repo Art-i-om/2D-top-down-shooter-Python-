@@ -5,6 +5,7 @@ import pygame
 import sys
 from entities import Player, CatchingEnemy, Enemy, Bullet, HealthPack, SpeedBoost
 from core import Camera
+from ui import Label, Bar
 import settings
 from managers import SoundManager
 from managers import MenuManager
@@ -30,6 +31,9 @@ PLAYER_HEALTH = settings.Player.health
 PLAYER_SIZE = settings.Player.size
 PLAYER_DAMAGE = settings.Player.damage
 PLAYER_DAMAGE_COOLDOWN = settings.Player.damage_cooldown
+STAMINA = settings.Player.max_stamina
+STAMINA_RECOVERY_RATE = settings.Player.stamina_recovery_rate
+STAMINA_CONSUMPTION_RATE = settings.Player.stamina_consumption_rate
 
 # Enemy
 CATCHING_ENEMY_SPEED = settings.CatchingEnemy.speed
@@ -64,9 +68,6 @@ pygame.display.set_caption("Top-Down Movement with Collectables")
 clock = pygame.time.Clock()
 
 score = 0
-enemies_killed = 0
-
-font = pygame.font.SysFont(None, 36)
 
 camera = Camera(WORLD_WIDTH, WORLD_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT)
 menu_manager = MenuManager(screen, clock, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, colors)
@@ -75,13 +76,13 @@ menu_manager.main_menu()
 
 def play_game():
     global score
-    global enemies_killed
 
     player = Player(WORLD_WIDTH // 2, WORLD_HEIGHT // 2, PLAYER_SIZE,
                     PLAYER_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, WORLD_WIDTH, WORLD_HEIGHT,
                     colors['green'], PLAYER_HEALTH,
                     PLAYER_DAMAGE,
-                    PLAYER_DAMAGE_COOLDOWN)
+                    PLAYER_DAMAGE_COOLDOWN,
+                    STAMINA, STAMINA_RECOVERY_RATE, STAMINA_CONSUMPTION_RATE)
 
     health_packs: List[HealthPack] = [
         HealthPack(POWER_UPS_SIZE, WORLD_WIDTH, WORLD_HEIGHT, colors['red'], HEALTH_PACK_HEALTH)
@@ -101,6 +102,16 @@ def play_game():
                       CATCHING_ENEMY_DAMAGE)
         for _ in range(2)
     ]
+
+    stamina_bar = Bar(10, SCREEN_HEIGHT - 70,
+                             350, 40,
+                             colors['white'], colors['cyan'])
+    health_bar = Bar(10, SCREEN_HEIGHT - 120,
+                     350, 40,
+                     colors['white'], colors['red'])
+
+    score_label = Label(f"Score: {score}", 10, 10, 36, colors['white'])
+    speed_label = Label(f"Speed: {player.speed}", 10, 40, 36, colors['white'])
 
     running = True
     while running:
@@ -128,6 +139,7 @@ def play_game():
                     menu_manager.pause_menu()
 
         player.handle_input()
+        speed_label.update_text(f"Speed: {player.speed * player.speed_multiplier}")
         camera.update(player)
 
         for bullet in bullets[:]:
@@ -161,7 +173,7 @@ def play_game():
                         if enemy in catching_enemies:
                             catching_enemies.remove(enemy)
                         score += 5
-                        enemies_killed += 1
+                        score_label.update_text(f"Score: {score}")
                         sound_manager.play_explosion()
                     break
 
@@ -179,14 +191,11 @@ def play_game():
         for entity in all_entities:
             entity.draw(screen, camera=camera)
 
-        score_text = font.render(f"Score: {score}", True, colors['white'])
-        enemies_killed_text = font.render(f"Enemies killed: {enemies_killed}", True, colors['white'])
-        health_text = font.render(f"Health: {player.health}", True, colors['white'])
-        speed_text = font.render(f"Speed: {player.speed}", True, colors['white'])
-        screen.blit(score_text, (10, 10))
-        screen.blit(enemies_killed_text, (10, 40))
-        screen.blit(health_text, (10, 70))
-        screen.blit(speed_text, (10, 100))
+        score_label.draw(screen)
+        speed_label.draw(screen)
+
+        stamina_bar.draw(screen, player.stamina, player.max_stamina)
+        health_bar.draw(screen, player.health, player.max_health)
 
         pygame.display.flip()
 
@@ -194,6 +203,3 @@ def play_game():
 while True:
     play_game()
     menu_manager.game_over_menu(score)
-
-# pygame.quit()
-# sys.exit()
